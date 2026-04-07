@@ -25,51 +25,54 @@
 
     {% if prediction_text %}
 
-    <!-- 🔥 MAIN RESULT -->
+    <!-- RESULT -->
     <div class="result-box">
         <h2>{{ prediction_text }}</h2>
     </div>
 
-    <!-- 🔥 URL STATUS VISUAL -->
-    <div class="url-status 
-        {% if "Legitimate" in prediction_text %}safe
-        {% elif "Phishing" in prediction_text %}danger
-        {% else %}warning
-        {% endif %}">
-        
-        <h3>🔗 URL Analysis</h3>
-        <p>
-            {% if "Legitimate" in prediction_text %}
-                ✅ This URL appears SAFE
-            {% elif "Phishing" in prediction_text %}
-                🚨 This URL is HIGHLY DANGEROUS
-            {% else %}
-                ⚠️ This URL is SUSPICIOUS
-            {% endif %}
-        </p>
+    <!-- 🔗 Checked URL -->
+    <div class="checked-url">
+        <h3>🔗 Checked URL</h3>
+        <p><strong>{{ url }}</strong></p>
     </div>
 
-    <!-- 🔍 REASON EXPLANATION -->
-    <div class="explanation">
-        <h3>🧠 Why this result?</h3>
-        <ul>
-            <li>DNS: {{ "Valid" if dns else "Invalid" }}</li>
-            <li>SSL: {{ "Secure" if ssl else "Not Secure" }}</li>
-            <li>Domain Age: {{ age }} days</li>
-            <li>ML Confidence: {{ ml }}</li>
-        </ul>
+    <!-- 🔥 DANGER LEVEL SCALE -->
+    <div class="risk-meter">
+        <h3>⚡ Website Danger Level</h3>
+
+        <div class="scale">
+            <div class="level {% if score <= 1 %}active{% endif %}">1</div>
+            <div class="level {% if score == 2 %}active{% endif %}">2</div>
+            <div class="level {% if score == 3 %}active{% endif %}">3</div>
+            <div class="level {% if score == 4 %}active{% endif %}">4</div>
+            <div class="level {% if score >= 5 %}active{% endif %}">5</div>
+        </div>
+
+        <p class="risk-text">
+            {% if score <= 1 %}
+                🟢 Very Safe
+            {% elif score == 2 %}
+                🟡 Low Risk
+            {% elif score == 3 %}
+                🟠 Medium Risk
+            {% elif score == 4 %}
+                🔴 High Risk
+            {% else %}
+                🚨 Dangerous
+            {% endif %}
+        </p>
     </div>
 
     <!-- DASHBOARD -->
     <div class="dashboard">
 
         <div class="card">
-            <h3>🌐 DNS Status</h3>
+            <h3>🌐 DNS</h3>
             <p>{{ "Valid" if dns else "Invalid" }}</p>
         </div>
 
         <div class="card">
-            <h3>🔐 SSL Status</h3>
+            <h3>🔐 SSL</h3>
             <p>{{ "Secure" if ssl else "Not Secure" }}</p>
         </div>
 
@@ -79,12 +82,12 @@
         </div>
 
         <div class="card">
-            <h3>🤖 ML Prediction</h3>
-            <p>{{ "Phishing" if ml > 0.6 else "Legitimate" }}</p>
+            <h3>🤖 ML Confidence</h3>
+            <p>{{ ml }}</p>
         </div>
 
         <div class="card">
-            <h3>⚡ Risk Score</h3>
+            <h3>⚡ Score</h3>
             <p>{{ score }}</p>
         </div>
 
@@ -95,7 +98,8 @@
 </div>
 
 <footer>
-     </footer>
+   
+</footer>
 
 <script>
 function showLoader() {
