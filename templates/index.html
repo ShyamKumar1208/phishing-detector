@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PhishGuard AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>🔐 PhishGuard AI</h1>
+    <p class="subtitle">Real-Time Phishing Detection Dashboard</p>
+
+    <form action="/predict" method="post" onsubmit="showLoader()">
+        <input type="text" name="url" placeholder="Enter website URL..." required>
+        <button type="submit">Scan URL</button>
+    </form>
+
+    <!-- Loader -->
+    <div id="loader" class="loader" style="display: none;">
+        <div class="spinner"></div>
+        <p>Analyzing URL... Checking Security Layers...</p>
+    </div>
+
+    {% if prediction_text %}
+
+    <!-- 🔥 MAIN RESULT -->
+    <div class="result-box">
+        <h2>{{ prediction_text }}</h2>
+    </div>
+
+    <!-- 🔥 URL STATUS VISUAL -->
+    <div class="url-status 
+        {% if "Legitimate" in prediction_text %}safe
+        {% elif "Phishing" in prediction_text %}danger
+        {% else %}warning
+        {% endif %}">
+        
+        <h3>🔗 URL Analysis</h3>
+        <p>
+            {% if "Legitimate" in prediction_text %}
+                ✅ This URL appears SAFE
+            {% elif "Phishing" in prediction_text %}
+                🚨 This URL is HIGHLY DANGEROUS
+            {% else %}
+                ⚠️ This URL is SUSPICIOUS
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- 🔍 REASON EXPLANATION -->
+    <div class="explanation">
+        <h3>🧠 Why this result?</h3>
+        <ul>
+            <li>DNS: {{ "Valid" if dns else "Invalid" }}</li>
+            <li>SSL: {{ "Secure" if ssl else "Not Secure" }}</li>
+            <li>Domain Age: {{ age }} days</li>
+            <li>ML Confidence: {{ ml }}</li>
+        </ul>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="dashboard">
+
+        <div class="card">
+            <h3>🌐 DNS Status</h3>
+            <p>{{ "Valid" if dns else "Invalid" }}</p>
+        </div>
+
+        <div class="card">
+            <h3>🔐 SSL Status</h3>
+            <p>{{ "Secure" if ssl else "Not Secure" }}</p>
+        </div>
+
+        <div class="card">
+            <h3>📅 Domain Age</h3>
+            <p>{{ age }} days</p>
+        </div>
+
+        <div class="card">
+            <h3>🤖 ML Prediction</h3>
+            <p>{{ "Phishing" if ml > 0.6 else "Legitimate" }}</p>
+        </div>
+
+        <div class="card">
+            <h3>⚡ Risk Score</h3>
+            <p>{{ score }}</p>
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+<footer>
+     </footer>
+
+<script>
+function showLoader() {
+    document.getElementById("loader").style.display = "block";
+}
+</script>
+
+</body>
+</html>
