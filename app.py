@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 import joblib
+from urllib.parse import urlparse
 from advanced_feature_extraction import FeatureExtraction
 from security_layer import (
     extract_domain,
@@ -11,7 +12,33 @@ from security_layer import (
 
 app = Flask(__name__)
 
+# Load model
 model = joblib.load("advanced_phishing_model.sav")
+
+
+# 🔥 URL NORMALIZATION FUNCTION
+def normalize_url(url):
+    url = url.strip()
+
+    # Add https if missing
+    if not url.startswith("http://") and not url.startswith("https://"):
+        url = "https://" + url
+
+    parsed = urlparse(url)
+
+    domain = parsed.netloc
+
+    # Fix duplicate www
+    if domain.startswith("www.www."):
+        domain = domain.replace("www.www.", "www.")
+
+    # Ensure www exists
+    if not domain.startswith("www."):
+        domain = "www." + domain
+
+    clean_url = "https://" + domain
+
+    return clean_url
 
 
 @app.route('/')
@@ -23,14 +50,8 @@ def home():
 def predict():
     url = request.form['url']
 
-    # 🔥 Normalize URL safely
-    if not url.startswith("http://") and not url.startswith("https://"):
-        url = "https://" + url
-
-    domain_part = url.split("//")[1]
-
-    if not domain_part.startswith("www."):
-        url = url.replace("https://", "https://www.")
+    # 🔥 Normalize URL
+    url = normalize_url(url)
 
     domain = extract_domain(url)
 
@@ -39,12 +60,12 @@ def predict():
     ssl_check = has_ssl(domain)
     domain_age = get_domain_age(domain)
 
-    # 🧠 ML prediction
+    # 🧠 ML Prediction
     features = FeatureExtraction(url).get_features()
     proba = model.predict_proba([features])[0]
     phishing_prob = proba[1]
 
-    # 🎯 Score
+    # 🎯 Risk Score Calculation
     score = 0
 
     if not dns_check:
@@ -59,7 +80,7 @@ def predict():
     if phishing_prob > 0.7:
         score += 3
 
-    # 🔥 FINAL LOGIC
+    # 🔥 FINAL DECISION LOGIC
     if is_trusted_domain(domain):
         result = "✅ Legitimate Website (Trusted Domain)"
 
@@ -76,7 +97,7 @@ def predict():
     else:
         result = "⚠️ Suspicious Website"
 
-    # Debug
+    # 🔍 DEBUG (optional)
     print("\n--- DEBUG ---")
     print("URL:", url)
     print("Domain:", domain)
