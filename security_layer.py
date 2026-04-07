@@ -4,7 +4,6 @@ import socket
 import requests
 from datetime import datetime
 
-# 🔥 TRUSTED DOMAINS (EXACT MATCH ONLY)
 TRUSTED_DOMAINS = [
     "google.com", "facebook.com", "instagram.com",
     "yahoo.com", "amazon.com", "twitter.com",
@@ -12,20 +11,16 @@ TRUSTED_DOMAINS = [
     "dituniversity.edu.in", "diterp.dituniversity.edu.in"
 ]
 
-# ✅ FIXED TRUSTED DOMAIN CHECK
 def is_trusted_domain(domain):
     domain = domain.replace("www.", "").lower()
     return domain in TRUSTED_DOMAINS
 
 
-# Extract domain
 def extract_domain(url):
     domain = url.replace("https://", "").replace("http://", "")
-    domain = domain.split("/")[0]
-    return domain.lower()
+    return domain.split("/")[0].lower()
 
 
-# DNS check
 def has_dns(domain):
     try:
         dns.resolver.resolve(domain, 'A')
@@ -34,7 +29,6 @@ def has_dns(domain):
         return False
 
 
-# SSL check
 def has_ssl(domain):
     try:
         ctx = ssl.create_default_context()
@@ -59,7 +53,6 @@ def has_ssl(domain):
         return False
 
 
-# RDAP domain age
 def get_domain_age(domain):
     try:
         url = f"https://rdap.org/domain/{domain}"
@@ -69,14 +62,12 @@ def get_domain_age(domain):
             return 0
 
         data = response.json()
-        events = data.get("events", [])
 
-        for event in events:
+        for event in data.get("events", []):
             if event.get("eventAction") == "registration":
                 date_str = event.get("eventDate")
                 creation_date = datetime.fromisoformat(date_str.replace("Z", ""))
-                age = (datetime.now() - creation_date).days
-                return age
+                return (datetime.now() - creation_date).days
 
         return 0
 
