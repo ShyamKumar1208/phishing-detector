@@ -9,87 +9,85 @@
 
 <div class="container">
 
-    <h1>🔐 PhishGuard AI</h1>
-    <p class="subtitle">Real-Time Phishing Detection Dashboard</p>
+    <h1 class="glow">🔐 PhishGuard AI</h1>
+    <p class="subtitle">Real-Time Cyber Threat Detection</p>
 
     <form action="/predict" method="post" onsubmit="showLoader()">
-        <input type="text" name="url" placeholder="Enter website URL..." required>
-        <button type="submit">Scan URL</button>
+        <input type="text" name="url" placeholder="Enter URL (e.g. instagram.com)" required>
+        <button type="submit">Scan Now</button>
     </form>
 
     <!-- Loader -->
-    <div id="loader" class="loader" style="display: none;">
+    <div id="loader" class="loader" style="display:none;">
         <div class="spinner"></div>
-        <p>Analyzing URL... Checking Security Layers...</p>
+        <p>Analyzing Threat Level...</p>
     </div>
 
     {% if prediction_text %}
 
     <!-- RESULT -->
-    <div class="result-box">
-        <h2>{{ prediction_text }}</h2>
+    <div class="result fade-in">
+        {{ prediction_text }}
     </div>
 
-    <!-- 🔗 Checked URL -->
-    <div class="checked-url">
-        <h3>🔗 Checked URL</h3>
-        <p><strong>{{ url }}</strong></p>
+    <!-- URL -->
+    <div class="url-box glass fade-in">
+        <span>🔗</span>
+        <span class="url-text">{{ url }}</span>
     </div>
 
-    <!-- 🔥 DANGER LEVEL SCALE -->
-    <div class="risk-meter">
-        <h3>⚡ Website Danger Level</h3>
+    <!-- INFO PANEL -->
+    <div class="info-panel">
 
-        <div class="scale">
-            <div class="level {% if score <= 1 %}active{% endif %}">1</div>
-            <div class="level {% if score == 2 %}active{% endif %}">2</div>
-            <div class="level {% if score == 3 %}active{% endif %}">3</div>
-            <div class="level {% if score == 4 %}active{% endif %}">4</div>
-            <div class="level {% if score >= 5 %}active{% endif %}">5</div>
+        <div class="info-card glass">
+            <p>DNS</p>
+            <h3>{{ "✔" if dns else "✖" }}</h3>
+        </div>
+
+        <div class="info-card glass">
+            <p>SSL</p>
+            <h3>{{ "✔" if ssl else "✖" }}</h3>
+        </div>
+
+        <div class="info-card glass">
+            <p>Age</p>
+            <h3>{{ age }}</h3>
+        </div>
+
+        <div class="info-card glass">
+            <p>ML</p>
+            <h3>{{ ml }}</h3>
+        </div>
+
+        <div class="info-card glass">
+            <p>Score</p>
+            <h3>{{ score }}</h3>
+        </div>
+
+    </div>
+
+    <!-- 🌡️ THERMOMETER -->
+    <div class="thermo-container fade-in">
+
+        <h3>⚠️ Threat Meter</h3>
+
+        <div class="thermometer">
+            <div class="thermo-fill" style="height: {{ score * 20 }}%;"></div>
         </div>
 
         <p class="risk-text">
             {% if score <= 1 %}
-                🟢 Very Safe
+                🟢 SAFE
             {% elif score == 2 %}
-                🟡 Low Risk
+                🟡 LOW RISK
             {% elif score == 3 %}
-                🟠 Medium Risk
+                🟠 MEDIUM
             {% elif score == 4 %}
-                🔴 High Risk
+                🔴 HIGH
             {% else %}
-                🚨 Dangerous
+                🚨 DANGER
             {% endif %}
         </p>
-    </div>
-
-    <!-- DASHBOARD -->
-    <div class="dashboard">
-
-        <div class="card">
-            <h3>🌐 DNS</h3>
-            <p>{{ "Valid" if dns else "Invalid" }}</p>
-        </div>
-
-        <div class="card">
-            <h3>🔐 SSL</h3>
-            <p>{{ "Secure" if ssl else "Not Secure" }}</p>
-        </div>
-
-        <div class="card">
-            <h3>📅 Domain Age</h3>
-            <p>{{ age }} days</p>
-        </div>
-
-        <div class="card">
-            <h3>🤖 ML Confidence</h3>
-            <p>{{ ml }}</p>
-        </div>
-
-        <div class="card">
-            <h3>⚡ Score</h3>
-            <p>{{ score }}</p>
-        </div>
 
     </div>
 
@@ -98,11 +96,11 @@
 </div>
 
 <footer>
-   
+    ⚡ Powered by AI Security Engine
 </footer>
 
 <script>
-function showLoader() {
+function showLoader(){
     document.getElementById("loader").style.display = "block";
 }
 </script>
