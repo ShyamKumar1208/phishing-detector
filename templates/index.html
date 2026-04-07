@@ -66,32 +66,43 @@
 
     </div>
 
-    <!-- 🌡️ THERMOMETER -->
-    <div class="thermo-container fade-in">
+    <!-- 🔥 HORIZONTAL RISK METER -->
+<div class="risk-container fade-in">
 
-        <h3>⚠️ Threat Meter</h3>
+    <h3>⚡ Threat Level Analysis</h3>
 
-        <div class="thermometer">
-            <div class="thermo-fill" style="height: {{ score * 20 }}%;"></div>
+    <!-- Progress Bar -->
+    <div class="risk-bar">
+        <div class="risk-fill" style="width: {{ score * 20 }}%;"></div>
+    </div>
+
+    <!-- Risk Levels -->
+    <div class="risk-levels">
+
+        <div class="risk-card level-1 {% if score == 1 %}active{% endif %}">
+            1<br><span>Safe</span>
         </div>
 
-        <p class="risk-text">
-            {% if score <= 1 %}
-                🟢 SAFE
-            {% elif score == 2 %}
-                🟡 LOW RISK
-            {% elif score == 3 %}
-                🟠 MEDIUM
-            {% elif score == 4 %}
-                🔴 HIGH
-            {% else %}
-                🚨 DANGER
-            {% endif %}
-        </p>
+        <div class="risk-card level-2 {% if score == 2 %}active{% endif %}">
+            2<br><span>Low</span>
+        </div>
+
+        <div class="risk-card level-3 {% if score == 3 %}active{% endif %}">
+            3<br><span>Medium</span>
+        </div>
+
+        <div class="risk-card level-4 {% if score == 4 %}active{% endif %}">
+            4<br><span>High</span>
+        </div>
+
+        <div class="risk-card level-5 {% if score >= 5 %}active{% endif %}">
+            5<br><span>Danger</span>
+        </div>
 
     </div>
 
-    {% endif %}
+</div>
+    
 
 </div>
 
