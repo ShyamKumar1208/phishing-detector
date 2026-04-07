@@ -23,6 +23,16 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     url = request.form['url']
+
+# 🔥 Normalize URL safely
+if not url.startswith("http://") and not url.startswith("https://"):
+    url = "https://" + url
+
+domain_part = url.split("//")[1]
+
+if not domain_part.startswith("www."):
+    url = url.replace("https://", "https://www.")
+    
     domain = extract_domain(url)
 
     # 🔍 Security checks
