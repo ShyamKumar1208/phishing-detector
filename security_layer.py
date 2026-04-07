@@ -4,64 +4,25 @@ import socket
 import requests
 from datetime import datetime
 
-
-# 🔥 TRUSTED DOMAINS (EXTENDED LIST)
+# 🔥 TRUSTED DOMAINS (EXACT MATCH ONLY)
 TRUSTED_DOMAINS = [
-
-    # Search
-    "google.com", "bing.com", "yahoo.com",
-
-    # Social
-    "instagram.com", "facebook.com", "twitter.com", "x.com",
-    "linkedin.com", "snapchat.com", "reddit.com",
-
-    # Media
-    "youtube.com", "netflix.com", "primevideo.com",
-    "hotstar.com", "spotify.com",
-
-    # Shopping
-    "amazon.com", "amazon.in", "flipkart.com", "myntra.com",
-    "ajio.com", "meesho.com",
-
-    # Payments / Banking
-    "paytm.com", "phonepe.com", "upi.com",
-    "icicibank.com", "hdfcbank.com", "sbi.co.in", "axisbank.com",
-
-    # Email / Cloud
-    "gmail.com", "outlook.com", "icloud.com",
-    "drive.google.com", "dropbox.com",
-
-    # Dev / Learning
-    "github.com", "stackoverflow.com", "kaggle.com",
-    "geeksforgeeks.org", "w3schools.com",
-
-    # Education
-    "coursera.org", "udemy.com", "edx.org", "khanacademy.org",
-
-    # 🔥 YOUR UNIVERSITY
-    "dituniversity.edu.in",
-    "diterp.dituniversity.edu.in",
-
-    # Government
-    "gov.in", "nic.in", "uidai.gov.in", "income-tax.gov.in",
-
-    # Travel
-    "irctc.co.in", "makemytrip.com", "goibibo.com",
-
-    # News
-    "timesofindia.com", "ndtv.com", "bbc.com", "hindustantimes.com"
+    "google.com", "facebook.com", "instagram.com",
+    "yahoo.com", "amazon.com", "twitter.com",
+    "linkedin.com", "netflix.com",
+    "dituniversity.edu.in", "diterp.dituniversity.edu.in"
 ]
 
-
+# ✅ FIXED TRUSTED DOMAIN CHECK
 def is_trusted_domain(domain):
-    return any(site in domain for site in TRUSTED_DOMAINS)
+    domain = domain.replace("www.", "").lower()
+    return domain in TRUSTED_DOMAINS
 
 
 # Extract domain
 def extract_domain(url):
     domain = url.replace("https://", "").replace("http://", "")
     domain = domain.split("/")[0]
-    return domain
+    return domain.lower()
 
 
 # DNS check
@@ -73,12 +34,11 @@ def has_dns(domain):
         return False
 
 
-# SSL check (robust)
+# SSL check
 def has_ssl(domain):
     try:
         ctx = ssl.create_default_context()
 
-        # Try normal
         try:
             with socket.create_connection((domain, 443), timeout=5) as sock:
                 with ctx.wrap_socket(sock, server_hostname=domain):
@@ -86,7 +46,6 @@ def has_ssl(domain):
         except:
             pass
 
-        # Try www
         try:
             with socket.create_connection(("www." + domain, 443), timeout=5) as sock:
                 with ctx.wrap_socket(sock, server_hostname="www." + domain):
