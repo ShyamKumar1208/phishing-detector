@@ -32,8 +32,7 @@
 
     <!-- URL -->
     <div class="url-box glass fade-in">
-        <span>🔗</span>
-        <span class="url-text">{{ url }}</span>
+        🔗 <span class="url-text">{{ url }}</span>
     </div>
 
     <!-- INFO PANEL -->
@@ -67,42 +66,58 @@
     </div>
 
     <!-- 🔥 HORIZONTAL RISK METER -->
-<div class="risk-container fade-in">
+    <div class="risk-container fade-in">
 
-    <h3>⚡ Threat Level Analysis</h3>
+        <h3>⚡ Threat Level Analysis</h3>
 
-    <!-- Progress Bar -->
-    <div class="risk-bar">
-        <div class="risk-fill" style="width: {{ score * 20 }}%;"></div>
+        <!-- Progress Bar -->
+        <div class="risk-bar">
+            <div class="risk-fill" style="width: {{ (score or 0) * 20 }}%;"></div>
+        </div>
+
+        <!-- Risk Cards -->
+        <div class="risk-levels">
+
+            <div class="risk-card level-1 {% if (score or 0) == 1 %}active{% endif %}">
+                1<br><span>Safe</span>
+            </div>
+
+            <div class="risk-card level-2 {% if (score or 0) == 2 %}active{% endif %}">
+                2<br><span>Low</span>
+            </div>
+
+            <div class="risk-card level-3 {% if (score or 0) == 3 %}active{% endif %}">
+                3<br><span>Medium</span>
+            </div>
+
+            <div class="risk-card level-4 {% if (score or 0) == 4 %}active{% endif %}">
+                4<br><span>High</span>
+            </div>
+
+            <div class="risk-card level-5 {% if (score or 0) >= 5 %}active{% endif %}">
+                5<br><span>Danger</span>
+            </div>
+
+        </div>
+
+        <!-- Risk Label -->
+        <p class="risk-text">
+            {% if (score or 0) <= 1 %}
+                🟢 Very Safe
+            {% elif (score or 0) == 2 %}
+                🟡 Low Risk
+            {% elif (score or 0) == 3 %}
+                🟠 Medium Risk
+            {% elif (score or 0) == 4 %}
+                🔴 High Risk
+            {% else %}
+                🚨 Dangerous
+            {% endif %}
+        </p>
+
     </div>
 
-    <!-- Risk Levels -->
-    <div class="risk-levels">
-
-        <div class="risk-card level-1 {% if score == 1 %}active{% endif %}">
-            1<br><span>Safe</span>
-        </div>
-
-        <div class="risk-card level-2 {% if score == 2 %}active{% endif %}">
-            2<br><span>Low</span>
-        </div>
-
-        <div class="risk-card level-3 {% if score == 3 %}active{% endif %}">
-            3<br><span>Medium</span>
-        </div>
-
-        <div class="risk-card level-4 {% if score == 4 %}active{% endif %}">
-            4<br><span>High</span>
-        </div>
-
-        <div class="risk-card level-5 {% if score >= 5 %}active{% endif %}">
-            5<br><span>Danger</span>
-        </div>
-
-    </div>
-
-</div>
-    
+    {% endif %}
 
 </div>
 
