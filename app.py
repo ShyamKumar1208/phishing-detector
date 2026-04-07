@@ -11,7 +11,6 @@ from security_layer import (
 
 app = Flask(__name__)
 
-# Load model
 model = joblib.load("advanced_phishing_model.sav")
 
 
@@ -24,15 +23,15 @@ def home():
 def predict():
     url = request.form['url']
 
-# 🔥 Normalize URL safely
-if not url.startswith("http://") and not url.startswith("https://"):
-    url = "https://" + url
+    # 🔥 Normalize URL safely
+    if not url.startswith("http://") and not url.startswith("https://"):
+        url = "https://" + url
 
-domain_part = url.split("//")[1]
+    domain_part = url.split("//")[1]
 
-if not domain_part.startswith("www."):
-    url = url.replace("https://", "https://www.")
-    
+    if not domain_part.startswith("www."):
+        url = url.replace("https://", "https://www.")
+
     domain = extract_domain(url)
 
     # 🔍 Security checks
@@ -40,7 +39,7 @@ if not domain_part.startswith("www."):
     ssl_check = has_ssl(domain)
     domain_age = get_domain_age(domain)
 
-    # 🧠 ML probability
+    # 🧠 ML prediction
     features = FeatureExtraction(url).get_features()
     proba = model.predict_proba([features])[0]
     phishing_prob = proba[1]
@@ -60,17 +59,13 @@ if not domain_part.startswith("www."):
     if phishing_prob > 0.7:
         score += 3
 
-    # 🔥 FINAL DEMO-SAFE LOGIC
-
-    # 1. Trusted domains (highest priority)
+    # 🔥 FINAL LOGIC
     if is_trusted_domain(domain):
         result = "✅ Legitimate Website (Trusted Domain)"
 
-    # 2. Strong phishing
     elif phishing_prob > 0.9:
         result = "⚠️ Phishing Website Detected"
 
-    # 3. Safe signals
     elif dns_check and ssl_check and (domain_age == 0 or domain_age > 180):
 
         if phishing_prob < 0.6:
@@ -78,17 +73,17 @@ if not domain_part.startswith("www."):
         else:
             result = "⚠️ Suspicious Website"
 
-    # 4. Default
     else:
         result = "⚠️ Suspicious Website"
 
     # Debug
     print("\n--- DEBUG ---")
     print("URL:", url)
+    print("Domain:", domain)
     print("DNS:", dns_check)
     print("SSL:", ssl_check)
-    print("Domain Age:", domain_age)
-    print("Phishing Probability:", phishing_prob)
+    print("Age:", domain_age)
+    print("Phishing Prob:", phishing_prob)
     print("Score:", score)
 
     return render_template(
