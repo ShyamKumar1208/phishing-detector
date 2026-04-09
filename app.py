@@ -45,7 +45,7 @@ def normalize_domain_text(domain):
     domain = domain.lower().replace("www.", "")
 
     replacements = {
-        '0': 'o',
+        '0': '0',
         '1': 'l',
         '3': 'e',
         '5': 's',
