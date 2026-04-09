@@ -40,7 +40,7 @@ def normalize_url(url):
     return "https://" + domain
 
 
-# 🔥 NORMALIZE DOMAIN TEXT
+# 🔥 DOMAIN NORMALIZATION (KEY FIX)
 def normalize_domain_text(domain):
     domain = domain.lower().replace("www.", "")
 
@@ -58,18 +58,19 @@ def normalize_domain_text(domain):
     return domain
 
 
-# 🔥 TYPOSQUATTING DETECTION (FIXED)
+# 🔥 FINAL TYPOSQUATTING DETECTION
 def is_typosquatting(domain):
     clean = normalize_domain_text(domain)
 
     for brand in KNOWN_BRANDS:
 
-        if clean == brand:
-            continue
+        # 🔥 Direct match after normalization
+        if brand in clean and clean != brand:
+            return True
 
+        # 🔥 Similarity fallback
         similarity = SequenceMatcher(None, clean, brand).ratio()
-
-        if similarity > 0.80:
+        if similarity > 0.75 and clean != brand:
             return True
 
     return False
@@ -78,25 +79,21 @@ def is_typosquatting(domain):
 # 🔥 MULTI BRAND CHECK
 def multiple_brand_check(domain):
     clean = normalize_domain_text(domain)
-
     count = sum(1 for brand in KNOWN_BRANDS if brand in clean)
-
     return count >= 2
 
 
-# 🔥 SUSPICIOUS PATTERN CHECK
+# 🔥 SUSPICIOUS PATTERN
 def suspicious_pattern(domain):
     digit_count = sum(c.isdigit() for c in domain)
     hyphen_count = domain.count("-")
-
     return digit_count >= 3 or hyphen_count >= 2
 
 
-# 🔥 BASIC BLACKLIST HEURISTIC
+# 🔥 BASIC BLACKLIST
 def check_blacklist(url):
-    suspicious_words = ["login", "verify", "secure", "update", "bank"]
-
-    return any(word in url.lower() for word in suspicious_words)
+    words = ["login", "verify", "secure", "update", "bank"]
+    return any(w in url.lower() for w in words)
 
 
 @app.route('/')
@@ -149,16 +146,16 @@ def predict():
     if check_blacklist(url):
         score += 2
 
-    # 🔥 FINAL DECISION ENGINE
+    # 🔥 FINAL DECISION (FIXED ORDER)
 
-    if is_trusted_domain(domain):
-        result = "✅ Legitimate Website (Trusted Domain)"
-
-    elif multiple_brand_check(domain):
+    if multiple_brand_check(domain):
         result = "🚨 Phishing (Multiple Brand Impersonation)"
 
     elif is_typosquatting(domain):
         result = "🚨 Phishing (Brand Impersonation)"
+
+    elif is_trusted_domain(domain):
+        result = "✅ Legitimate Website (Trusted Domain)"
 
     elif phishing_prob > 0.9:
         result = "🚨 Phishing Website Detected"
@@ -171,13 +168,6 @@ def predict():
 
     else:
         result = "🟢 Legitimate Website"
-
-    # DEBUG
-    print("\n--- DEBUG ---")
-    print("URL:", url)
-    print("Domain:", domain)
-    print("Score:", score)
-    print("Phishing Prob:", phishing_prob)
 
     return render_template(
         "index.html",
