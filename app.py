@@ -40,12 +40,12 @@ def normalize_url(url):
     return "https://" + domain
 
 
-# 🔥 DOMAIN TEXT NORMALIZATION
+# 🔥 NORMALIZE DOMAIN TEXT
 def normalize_domain_text(domain):
     domain = domain.lower().replace("www.", "")
 
     replacements = {
-        '0': '0',
+        '0': 'o',
         '1': 'l',
         '3': 'e',
         '5': 's',
@@ -58,13 +58,12 @@ def normalize_domain_text(domain):
     return domain
 
 
-# 🔥 FIXED TYPOSQUATTING DETECTION
+# 🔥 TYPOSQUATTING DETECTION (FIXED)
 def is_typosquatting(domain):
     clean = normalize_domain_text(domain)
 
     for brand in KNOWN_BRANDS:
 
-        # Skip exact match
         if clean == brand:
             continue
 
@@ -76,7 +75,7 @@ def is_typosquatting(domain):
     return False
 
 
-# 🔥 MULTI BRAND DETECTION
+# 🔥 MULTI BRAND CHECK
 def multiple_brand_check(domain):
     clean = normalize_domain_text(domain)
 
@@ -93,6 +92,13 @@ def suspicious_pattern(domain):
     return digit_count >= 3 or hyphen_count >= 2
 
 
+# 🔥 BASIC BLACKLIST HEURISTIC
+def check_blacklist(url):
+    suspicious_words = ["login", "verify", "secure", "update", "bank"]
+
+    return any(word in url.lower() for word in suspicious_words)
+
+
 @app.route('/')
 def home():
     return render_template("index.html")
@@ -106,7 +112,7 @@ def predict():
 
     domain = extract_domain(url)
 
-    # 🔍 SECURITY CHECKS
+    # 🔍 CHECKS
     dns_check = has_dns(domain)
     ssl_check = has_ssl(domain)
     domain_age = get_domain_age(domain)
@@ -140,7 +146,10 @@ def predict():
     if suspicious_pattern(domain):
         score += 1
 
-    # 🔥 FINAL DECISION (CORRECT ORDER)
+    if check_blacklist(url):
+        score += 2
+
+    # 🔥 FINAL DECISION ENGINE
 
     if is_trusted_domain(domain):
         result = "✅ Legitimate Website (Trusted Domain)"
@@ -152,7 +161,7 @@ def predict():
         result = "🚨 Phishing (Brand Impersonation)"
 
     elif phishing_prob > 0.9:
-        result = "⚠️ Phishing Website Detected"
+        result = "🚨 Phishing Website Detected"
 
     elif score >= 6:
         result = "🔴 Dangerous Website"
@@ -163,7 +172,7 @@ def predict():
     else:
         result = "🟢 Legitimate Website"
 
-    # Debug
+    # DEBUG
     print("\n--- DEBUG ---")
     print("URL:", url)
     print("Domain:", domain)
