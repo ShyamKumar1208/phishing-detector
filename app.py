@@ -16,30 +16,12 @@ app = Flask(__name__)
 
 model = joblib.load("advanced_phishing_model.sav")
 
-# 🔥 BRAND DATABASE
+# 🔥 BRAND LIST
 KNOWN_BRANDS = [
     "google", "facebook", "instagram",
     "yahoo", "amazon", "twitter",
     "linkedin", "netflix", "microsoft"
 ]
-
-# 🔥 CHARACTER NORMALIZATION (IMPORTANT)
-def normalize_domain_text(domain):
-    domain = domain.lower().replace("www.", "")
-
-    replacements = {
-        '0': 'o',
-        '1': 'l',
-        '3': 'e',
-        '5': 's',
-        '7': 't',
-        '@': 'a'
-    }
-
-    for k, v in replacements.items():
-        domain = domain.replace(k, v)
-
-    return domain
 
 
 # 🔥 URL NORMALIZATION
@@ -58,46 +40,57 @@ def normalize_url(url):
     return "https://" + domain
 
 
-# 🔥 ADVANCED TYPOSQUATTING DETECTION
+# 🔥 DOMAIN TEXT NORMALIZATION
+def normalize_domain_text(domain):
+    domain = domain.lower().replace("www.", "")
+
+    replacements = {
+        '0': 'o',
+        '1': 'l',
+        '3': 'e',
+        '5': 's',
+        '7': 't'
+    }
+
+    for k, v in replacements.items():
+        domain = domain.replace(k, v)
+
+    return domain
+
+
+# 🔥 FIXED TYPOSQUATTING DETECTION
 def is_typosquatting(domain):
     clean = normalize_domain_text(domain)
 
     for brand in KNOWN_BRANDS:
+
+        # Skip exact match
+        if clean == brand:
+            continue
+
         similarity = SequenceMatcher(None, clean, brand).ratio()
 
-        # Direct substring (google-login, etc.)
-        if brand in clean and clean != brand:
-            return True
-
-        # Similarity match
-        if similarity > 0.75 and clean != brand:
+        if similarity > 0.80:
             return True
 
     return False
 
 
-# 🔥 MULTI BRAND DETECTION (VERY IMPORTANT)
+# 🔥 MULTI BRAND DETECTION
 def multiple_brand_check(domain):
     clean = normalize_domain_text(domain)
 
     count = sum(1 for brand in KNOWN_BRANDS if brand in clean)
+
     return count >= 2
 
 
 # 🔥 SUSPICIOUS PATTERN CHECK
 def suspicious_pattern(domain):
-    domain = domain.lower()
-
     digit_count = sum(c.isdigit() for c in domain)
     hyphen_count = domain.count("-")
 
-    if digit_count >= 2:
-        return True
-
-    if hyphen_count >= 2:
-        return True
-
-    return False
+    return digit_count >= 3 or hyphen_count >= 2
 
 
 @app.route('/')
@@ -138,7 +131,6 @@ def predict():
     if phishing_prob > 0.7:
         score += 3
 
-    # 🔥 ADVANCED DETECTION LAYERS
     if is_typosquatting(domain):
         score += 4
 
@@ -146,10 +138,14 @@ def predict():
         score += 4
 
     if suspicious_pattern(domain):
-        score += 2
+        score += 1
 
-    # 🔥 FINAL DECISION ENGINE
-    if multiple_brand_check(domain):
+    # 🔥 FINAL DECISION (CORRECT ORDER)
+
+    if is_trusted_domain(domain):
+        result = "✅ Legitimate Website (Trusted Domain)"
+
+    elif multiple_brand_check(domain):
         result = "🚨 Phishing (Multiple Brand Impersonation)"
 
     elif is_typosquatting(domain):
@@ -157,9 +153,6 @@ def predict():
 
     elif phishing_prob > 0.9:
         result = "⚠️ Phishing Website Detected"
-
-    elif is_trusted_domain(domain):
-        result = "✅ Legitimate Website (Trusted Domain)"
 
     elif score >= 6:
         result = "🔴 Dangerous Website"
@@ -170,7 +163,7 @@ def predict():
     else:
         result = "🟢 Legitimate Website"
 
-    # DEBUG
+    # Debug
     print("\n--- DEBUG ---")
     print("URL:", url)
     print("Domain:", domain)
