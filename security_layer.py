@@ -4,18 +4,32 @@ import socket
 import requests
 from datetime import datetime
 
-# 🔥 TRUSTED DOMAINS (EXACT MATCH)
-TRUSTED_DOMAINS = [
-    "google.com", "facebook.com", "instagram.com",
-    "yahoo.com", "amazon.com", "twitter.com",
-    "linkedin.com", "netflix.com",
-    "dituniversity.edu.in", "diterp.dituniversity.edu.in"
-]
+# 🔥 LOAD TRUSTED DOMAINS FROM FILE
+def load_trusted_domains():
+    try:
+        with open("trusted_domains.txt", "r") as f:
+            return [line.strip().lower() for line in f if line.strip()]
+    except:
+        return []
 
-# ✅ EXACT MATCH ONLY
+TRUSTED_DOMAINS = load_trusted_domains()
+
+
+# ✅ SAFE TRUST CHECK
 def is_trusted_domain(domain):
     domain = domain.replace("www.", "").lower()
-    return domain in TRUSTED_DOMAINS
+
+    for trusted in TRUSTED_DOMAINS:
+
+        # Exact match
+        if domain == trusted:
+            return True
+
+        # Subdomain support
+        if domain.endswith("." + trusted):
+            return True
+
+    return False
 
 
 # Extract domain
@@ -58,7 +72,7 @@ def has_ssl(domain):
         return False
 
 
-# Domain age via RDAP
+# Domain age (RDAP)
 def get_domain_age(domain):
     try:
         url = f"https://rdap.org/domain/{domain}"
