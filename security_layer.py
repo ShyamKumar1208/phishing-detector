@@ -4,6 +4,7 @@ import socket
 import requests
 from datetime import datetime
 
+# 🔥 TRUSTED DOMAINS (EXACT MATCH)
 TRUSTED_DOMAINS = [
     "google.com", "facebook.com", "instagram.com",
     "yahoo.com", "amazon.com", "twitter.com",
@@ -11,16 +12,19 @@ TRUSTED_DOMAINS = [
     "dituniversity.edu.in", "diterp.dituniversity.edu.in"
 ]
 
+# ✅ EXACT MATCH ONLY
 def is_trusted_domain(domain):
     domain = domain.replace("www.", "").lower()
     return domain in TRUSTED_DOMAINS
 
 
+# Extract domain
 def extract_domain(url):
     domain = url.replace("https://", "").replace("http://", "")
     return domain.split("/")[0].lower()
 
 
+# DNS check
 def has_dns(domain):
     try:
         dns.resolver.resolve(domain, 'A')
@@ -29,6 +33,7 @@ def has_dns(domain):
         return False
 
 
+# SSL check
 def has_ssl(domain):
     try:
         ctx = ssl.create_default_context()
@@ -53,6 +58,7 @@ def has_ssl(domain):
         return False
 
 
+# Domain age via RDAP
 def get_domain_age(domain):
     try:
         url = f"https://rdap.org/domain/{domain}"
