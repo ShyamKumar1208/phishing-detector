@@ -4,7 +4,7 @@ import socket
 import requests
 from datetime import datetime
 
-# 🔥 LOAD TRUSTED DOMAINS FROM FILE
+# 🔥 LOAD TRUSTED DOMAINS
 def load_trusted_domains():
     try:
         with open("trusted_domains.txt", "r") as f:
@@ -20,12 +20,9 @@ def is_trusted_domain(domain):
     domain = domain.replace("www.", "").lower()
 
     for trusted in TRUSTED_DOMAINS:
-
-        # Exact match
         if domain == trusted:
             return True
 
-        # Subdomain support
         if domain.endswith("." + trusted):
             return True
 
@@ -72,7 +69,7 @@ def has_ssl(domain):
         return False
 
 
-# Domain age (RDAP)
+# Domain age
 def get_domain_age(domain):
     try:
         url = f"https://rdap.org/domain/{domain}"
