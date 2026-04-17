@@ -27,19 +27,44 @@ def home():
 def predict():
     url = request.form["url"]
 
-    # 🔥 Default values (for UI)
-    dns = "✔"
-    ssl = "✔"
+    # default values
+    dns = True
+    ssl = True
     age = 5000
     ml_score = 0.0
 
-    # 🔥 ML Prediction (if model exists)
+    # ML prediction
     if model:
         try:
             features = [len(url), url.count("."), url.count("-")]
             ml_score = model.predict_proba([features])[0][1]
         except:
             ml_score = 0.5
+
+    # 🔥 LOGIC
+    if is_trusted_domain(url):
+        prediction_text = "✅ Legitimate Website (Trusted Domain)"
+
+    elif is_suspicious_domain(url):
+        prediction_text = "⚠️ Suspicious Website"
+
+    else:
+        if ml_score > 0.95:
+            prediction_text = "🚨 Phishing Website Detected"
+        elif ml_score > 0.6:
+            prediction_text = "⚠️ Suspicious Website"
+        else:
+            prediction_text = "🟢 Legitimate Website"
+
+    return render_template(
+        "index.html",
+        prediction_text=prediction_text,
+        url=url,
+        dns=dns,
+        ssl=ssl,
+        age=age,
+        ml=round(ml_score, 2)
+    )
 
     # 🔥 DECISION LOGIC (FIXED)
 
