@@ -1,92 +1,36 @@
-import dns.resolver
-import ssl
-import socket
-import requests
-from datetime import datetime
+import tldextract
 
-# 🔥 LOAD TRUSTED DOMAINS
-def load_trusted_domains():
-    try:
-        with open("trusted_domains.txt", "r") as f:
-            return [line.strip().lower() for line in f if line.strip()]
-    except:
-        return []
-
-TRUSTED_DOMAINS = load_trusted_domains()
+# 🔥 Trusted domains
+TRUSTED_DOMAINS = [
+    "google.com", "facebook.com", "instagram.com",
+    "amazon.com", "youtube.com", "yahoo.com",
+    "microsoft.com", "linkedin.com",
+    "dituniversity.edu.in"
+]
 
 
-# ✅ SAFE TRUST CHECK
-def is_trusted_domain(domain):
-    domain = domain.replace("www.", "").lower()
+def extract_domain(url):
+    ext = tldextract.extract(url)
+    return f"{ext.domain}.{ext.suffix}"
+
+
+# 🔥 Trusted check
+def is_trusted_domain(url):
+    domain = extract_domain(url)
 
     for trusted in TRUSTED_DOMAINS:
-        if domain == trusted:
-            return True
-
-        if domain.endswith("." + trusted):
+        if domain == trusted or domain.endswith("." + trusted):
             return True
 
     return False
 
 
-# Extract domain
-def extract_domain(url):
-    domain = url.replace("https://", "").replace("http://", "")
-    return domain.split("/")[0].lower()
+# 🔥 Simple brand check (optional)
+def is_suspicious_domain(url):
+    suspicious_keywords = ["login", "secure", "verify", "update"]
 
+    for word in suspicious_keywords:
+        if word in url.lower():
+            return True
 
-# DNS check
-def has_dns(domain):
-    try:
-        dns.resolver.resolve(domain, 'A')
-        return True
-    except:
-        return False
-
-
-# SSL check
-def has_ssl(domain):
-    try:
-        ctx = ssl.create_default_context()
-
-        try:
-            with socket.create_connection((domain, 443), timeout=5) as sock:
-                with ctx.wrap_socket(sock, server_hostname=domain):
-                    return True
-        except:
-            pass
-
-        try:
-            with socket.create_connection(("www." + domain, 443), timeout=5) as sock:
-                with ctx.wrap_socket(sock, server_hostname="www." + domain):
-                    return True
-        except:
-            pass
-
-        return False
-
-    except:
-        return False
-
-
-# Domain age
-def get_domain_age(domain):
-    try:
-        url = f"https://rdap.org/domain/{domain}"
-        response = requests.get(url, timeout=5)
-
-        if response.status_code != 200:
-            return 0
-
-        data = response.json()
-
-        for event in data.get("events", []):
-            if event.get("eventAction") == "registration":
-                date_str = event.get("eventDate")
-                creation_date = datetime.fromisoformat(date_str.replace("Z", ""))
-                return (datetime.now() - creation_date).days
-
-        return 0
-
-    except:
-        return 0
+    return False
