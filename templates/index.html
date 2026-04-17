@@ -9,105 +9,25 @@
 
 <div class="container">
 
-    <h1 class="glow">🔐 PhishGuard AI</h1>
-    <p class="subtitle">Real-Time Cyber Threat Detection</p>
+    <h1>🔐 PhishGuard AI</h1>
+    <p>Real-Time Cyber Threat Detection</p>
 
-    <form action="/predict" method="post" onsubmit="showLoader()">
-        <input type="text" name="url" placeholder="Enter URL (e.g. instagram.com)" required>
+    <form action="/predict" method="post">
+        <input type="text" name="url" placeholder="Enter URL" required>
         <button type="submit">Scan Now</button>
     </form>
 
-    <!-- Loader -->
-    <div id="loader" class="loader" style="display:none;">
-        <div class="spinner"></div>
-        <p>Analyzing Threat Level...</p>
-    </div>
-
     {% if prediction_text %}
+    <div class="result">{{ prediction_text }}</div>
 
-    <!-- RESULT -->
-    <div class="result fade-in">
-        {{ prediction_text }}
-    </div>
-
-    <!-- URL -->
-    <div class="url-box glass fade-in">
-        🔗 <span class="url-text">{{ url }}</span>
-    </div>
-
-    <!-- INFO PANEL -->
-    <div class="info-panel">
-
-        <div class="info-card glass">
-            <p>DNS</p>
-            <h3>{{ "✔" if dns else "✖" }}</h3>
-        </div>
-
-        <div class="info-card glass">
-            <p>SSL</p>
-            <h3>{{ "✔" if ssl else "✖" }}</h3>
-        </div>
-
-        <div class="info-card glass">
-            <p>Age</p>
-            <h3>{{ age }}</h3>
-        </div>
-
-        <div class="info-card glass">
-            <p>ML</p>
-            <h3>{{ ml }}</h3>
-        </div>
-
-    </div>
-
-    <!-- 🔥 3-LEVEL RISK METER -->
-    <div class="risk-container fade-in">
-
-        <h3>⚡ Threat Level</h3>
-
-        <div class="risk-bar">
-            <div class="risk-fill 
-                {% if 'Legitimate' in prediction_text %}safe
-                {% elif 'Suspicious' in prediction_text %}warn
-                {% else %}danger
-                {% endif %}">
-            </div>
-        </div>
-
-        <div class="risk-labels">
-
-            <div class="risk-card safe 
-                {% if 'Legitimate' in prediction_text %}active{% endif %}">
-                🟢 Legitimate
-            </div>
-
-            <div class="risk-card warn 
-                {% if 'Suspicious' in prediction_text %}active{% endif %}">
-                🟡 Suspicious
-            </div>
-
-            <div class="risk-card danger 
-                {% if 'Phishing' in prediction_text or 'Danger' in prediction_text %}active{% endif %}">
-                🔴 Dangerous
-            </div>
-
-        </div>
-
-    </div>
-
+    <p><strong>URL:</strong> {{ url }}</p>
+    <p>DNS: {{ dns }}</p>
+    <p>SSL: {{ ssl }}</p>
+    <p>Age: {{ age }}</p>
+    <p>ML Score: {{ ml }}</p>
     {% endif %}
 
 </div>
-
-<footer>
-    ⚡ Powered by AI Security Engine
-</footer>
-
-<script>
-function showLoader(){
-    document.getElementById("loader").style.display = "block";
-}
-</script>
 
 </body>
 </html>
