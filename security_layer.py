@@ -1,4 +1,4 @@
-import tldextract
+from urllib.parse import urlparse
 
 # 🔥 Trusted domains
 TRUSTED_DOMAINS = [
@@ -8,13 +8,43 @@ TRUSTED_DOMAINS = [
     "dituniversity.edu.in"
 ]
 
+# 🔥 Known brands
+KNOWN_BRANDS = [
+    "google", "facebook", "instagram",
+    "amazon", "yahoo", "microsoft",
+    "netflix", "linkedin", "paypal", "apple"
+]
+
+
+def normalize(text):
+    replacements = {
+        '0': 'o',
+        '1': 'l',
+        '3': 'e',
+        '5': 's',
+        '7': 't',
+        '@': 'a'
+    }
+
+    for k, v in replacements.items():
+        text = text.replace(k, v)
+
+    return text
+
 
 def extract_domain(url):
-    ext = tldextract.extract(url)
-    return f"{ext.domain}.{ext.suffix}"
+    if not url.startswith("http"):
+        url = "https://" + url
+
+    parsed = urlparse(url)
+    return parsed.netloc.replace("www.", "")
 
 
-# 🔥 Trusted check
+def split_domain(domain):
+    parts = domain.split(".")
+    return parts[-2] if len(parts) >= 2 else domain
+
+
 def is_trusted_domain(url):
     domain = extract_domain(url)
 
@@ -25,12 +55,38 @@ def is_trusted_domain(url):
     return False
 
 
-# 🔥 Simple brand check (optional)
-def is_suspicious_domain(url):
-    suspicious_keywords = ["login", "secure", "verify", "update"]
+# 🔥 NEW: BRAND ATTACK DETECTION
+def is_brand_attack(url):
+    domain = extract_domain(url)
+    name = split_domain(domain)
 
-    for word in suspicious_keywords:
-        if word in url.lower():
+    original = name.lower()
+    clean = normalize(original)
+
+    for brand in KNOWN_BRANDS:
+
+        # Legit
+        if original == brand:
+            return False
+
+        # 🚨 g00gle → google
+        if clean == brand and original != brand:
+            return True
+
+        # 🚨 similarity (gooogle)
+        if brand in clean and clean != brand:
+            return True
+
+    return False
+
+
+def is_suspicious_domain(url):
+    keywords = ["login", "secure", "verify", "update", "bank"]
+
+    url = url.lower()
+
+    for word in keywords:
+        if word in url:
             return True
 
     return False
