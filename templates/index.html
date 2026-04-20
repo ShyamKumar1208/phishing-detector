@@ -9,25 +9,70 @@
 
 <div class="container">
 
-    <h1>🔐 PhishGuard AI</h1>
-    <p>Real-Time Cyber Threat Detection</p>
+    <h1 class="glow">🔐 PhishGuard AI</h1>
+    <p class="subtitle">Real-Time Cyber Threat Detection</p>
 
-    <form action="/predict" method="post">
-        <input type="text" name="url" placeholder="Enter URL" required>
+    <form action="/predict" method="post" onsubmit="showLoader()">
+        <input type="text" name="url" placeholder="Enter URL (e.g. instagram.com)" required>
         <button type="submit">Scan Now</button>
     </form>
 
-    {% if prediction_text %}
-    <div class="result">{{ prediction_text }}</div>
+    <!-- Loader -->
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+        <p>Analyzing threat...</p>
+    </div>
 
-    <p><strong>URL:</strong> {{ url }}</p>
-    <p>DNS: {{ dns }}</p>
-    <p>SSL: {{ ssl }}</p>
-    <p>Age: {{ age }}</p>
-    <p>ML Score: {{ ml }}</p>
+    {% if prediction_text %}
+
+    <!-- RESULT -->
+    <div class="result fade-in">
+        {{ prediction_text }}
+    </div>
+
+    <!-- URL -->
+    <div class="url-box fade-in">
+        🔗 {{ url }}
+    </div>
+
+    <!-- INFO -->
+    <div class="info-panel fade-in">
+        <div class="card">DNS ✔</div>
+        <div class="card">SSL ✔</div>
+        <div class="card">ML {{ ml }}</div>
+    </div>
+
+    <!-- 🔥 TRUST METER -->
+    <div class="meter fade-in">
+
+        <div class="meter-bar">
+            <div class="meter-fill 
+                {% if 'Legitimate' in prediction_text %}safe
+                {% elif 'Suspicious' in prediction_text %}warn
+                {% else %}danger
+                {% endif %}">
+            </div>
+        </div>
+
+        <div class="labels">
+            <span class="safe {% if 'Legitimate' in prediction_text %}active{% endif %}">🟢 Safe</span>
+            <span class="warn {% if 'Suspicious' in prediction_text %}active{% endif %}">🟡 Suspicious</span>
+            <span class="danger {% if 'Phishing' in prediction_text or 'Suspicious URL' in prediction_text %}active{% endif %}">🔴 Dangerous</span>
+        </div>
+
+    </div>
+
     {% endif %}
 
 </div>
+
+<footer>⚡ Powered by AI Security Engine</footer>
+
+<script>
+function showLoader(){
+    document.getElementById("loader").style.display = "block";
+}
+</script>
 
 </body>
 </html>
