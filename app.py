@@ -4,6 +4,7 @@ import os
 from urllib.parse import urlparse
 
 from security_layer import (
+    google_safe_check,   # 🔥 NEW
     is_trusted_domain,
     is_suspicious_domain,
     is_brand_attack,
@@ -37,7 +38,6 @@ def predict():
     if not url.startswith("http"):
         url = "https://" + url
 
-    parsed = urlparse(url)
     domain = extract_domain(url)
 
     # 🔥 Default UI values
@@ -54,7 +54,9 @@ def predict():
         except:
             ml_score = 0.5
 
-    # 🔥 FINAL DETECTION LOGIC (ORDER MATTERS)
+    # ====================================================
+    # 🔥 FINAL DETECTION PIPELINE (INDUSTRY ORDER)
+    # ====================================================
 
     # 1️⃣ Invalid URL
     if is_invalid_domain(domain):
@@ -64,19 +66,23 @@ def predict():
     elif has_credentials(url):
         prediction_text = "🚨 Suspicious URL (Contains Credentials)"
 
-    # 3️⃣ Trusted domain
+    # 3️⃣ Google Safe Browsing (🔥 NEW LAYER)
+    elif google_safe_check(url):
+        prediction_text = "🚨 Blacklisted (Google Safe Browsing)"
+
+    # 4️⃣ Trusted domains
     elif is_trusted_domain(domain):
         prediction_text = "✅ Legitimate Website (Trusted Domain)"
 
-    # 4️⃣ Brand impersonation
+    # 5️⃣ Brand impersonation
     elif is_brand_attack(domain):
         prediction_text = "🚨 Brand Impersonation (Phishing)"
 
-    # 5️⃣ Keyword suspicious
+    # 6️⃣ Keyword-based suspicious
     elif is_suspicious_domain(domain):
         prediction_text = "⚠️ Suspicious Website"
 
-    # 6️⃣ ML fallback
+    # 7️⃣ ML fallback
     else:
         if ml_score > 0.95:
             prediction_text = "🚨 Phishing Website Detected"
