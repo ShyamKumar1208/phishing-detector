@@ -1,5 +1,34 @@
 from urllib.parse import urlparse
+import requests
 
+GOOGLE_API_KEY = "AIzaSyD-pANdKxZyrpUMKd6HvmR2doY73NF0J_c"
+
+def google_safe_check(url):
+    endpoint = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={GOOGLE_API_KEY}"
+
+    payload = {
+        "client": {
+            "clientId": "phishguard",
+            "clientVersion": "1.0"
+        },
+        "threatInfo": {
+            "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING"],
+            "platformTypes": ["ANY_PLATFORM"],
+            "threatEntryTypes": ["URL"],
+            "threatEntries": [{"url": url}]
+        }
+    }
+
+    try:
+        response = requests.post(endpoint, json=payload)
+        result = response.json()
+
+        if "matches" in result:
+            return True  # 🚨 dangerous
+    except:
+        pass
+
+    return False  # safe
 # 🔥 Trusted domains
 TRUSTED_DOMAINS = [
     "google.com", "facebook.com", "instagram.com",
