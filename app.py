@@ -3,11 +3,17 @@ import joblib
 import os
 from urllib.parse import urlparse
 
-from security_layer import is_trusted_domain, is_suspicious_domain, is_brand_attack
+from security_layer import (
+    is_trusted_domain,
+    is_suspicious_domain,
+    is_brand_attack,
+    has_credentials,
+    extract_domain
+)
 
 app = Flask(__name__)
 
-# Load model
+# Load ML model
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(BASE_DIR, "advanced_phishing_model.sav")
 
@@ -26,15 +32,19 @@ def home():
 def predict():
     url = request.form["url"]
 
-    # Normalize
+    # Normalize URL
     if not url.startswith("http"):
         url = "https://" + url
 
-    parsed = urlparse(url)
-    domain = parsed.netloc.replace("www.", "")
+    domain = extract_domain(url)
 
-    # ML score
+    # Default UI values
+    dns = True
+    ssl = True
+    age = 5000
     ml_score = 0.0
+
+    # ML prediction
     if model:
         try:
             features = [len(url), url.count("."), url.count("-")]
@@ -42,8 +52,12 @@ def predict():
         except:
             ml_score = 0.5
 
-    # 🔥 FINAL LOGIC (ALL INSIDE FUNCTION)
-    if is_trusted_domain(domain):
+    # 🔥 FINAL DETECTION LOGIC (CORRECT ORDER)
+
+    if has_credentials(url):
+        prediction_text = "🚨 Suspicious URL (Contains Credentials)"
+
+    elif is_trusted_domain(domain):
         prediction_text = "✅ Legitimate Website (Trusted Domain)"
 
     elif is_brand_attack(domain):
@@ -64,9 +78,9 @@ def predict():
         "index.html",
         prediction_text=prediction_text,
         url=url,
-        dns=True,
-        ssl=True,
-        age=5000,
+        dns=dns,
+        ssl=ssl,
+        age=age,
         ml=round(ml_score, 2)
     )
 
