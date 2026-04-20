@@ -15,25 +15,20 @@ KNOWN_BRANDS = [
     "netflix", "linkedin", "paypal", "apple"
 ]
 
+VALID_TLDS = ["com", "org", "net", "in", "edu", "gov", "co"]
 
-# 🔥 Normalize characters (0 → o etc.)
+
 def normalize(text):
     replacements = {
-        '0': 'o',
-        '1': 'l',
-        '3': 'e',
-        '5': 's',
-        '7': 't',
-        '@': 'a'
+        '0': 'o', '1': 'l', '3': 'e',
+        '5': 's', '7': 't', '@': 'a'
     }
-
     for k, v in replacements.items():
         text = text.replace(k, v)
-
     return text
 
 
-# 🔥 Extract clean domain (handles @ attack)
+# 🔥 Extract domain safely
 def extract_domain(url):
     if not url.startswith("http"):
         url = "https://" + url
@@ -41,25 +36,35 @@ def extract_domain(url):
     parsed = urlparse(url)
     netloc = parsed.netloc
 
-    # remove credentials (user@)
     if "@" in netloc:
         netloc = netloc.split("@")[-1]
 
     return netloc.replace("www.", "")
 
 
-# 🔥 Split domain name
+# 🔥 INVALID URL CHECK (NEW)
+def is_invalid_domain(domain):
+    if "." not in domain:
+        return True
+
+    parts = domain.split(".")
+    tld = parts[-1]
+
+    if tld not in VALID_TLDS:
+        return True
+
+    return False
+
+
 def split_domain(domain):
     parts = domain.split(".")
     return parts[-2] if len(parts) >= 2 else domain
 
 
-# 🔥 Credential attack detection
 def has_credentials(url):
     return "@" in url
 
 
-# 🔥 Trusted domain check
 def is_trusted_domain(domain):
     for trusted in TRUSTED_DOMAINS:
         if domain == trusted or domain.endswith("." + trusted):
@@ -67,7 +72,6 @@ def is_trusted_domain(domain):
     return False
 
 
-# 🔥 Brand impersonation detection
 def is_brand_attack(domain):
     name = split_domain(domain)
 
@@ -76,22 +80,18 @@ def is_brand_attack(domain):
 
     for brand in KNOWN_BRANDS:
 
-        # Legit
         if original == brand:
             continue
 
-        # 🚨 g00gle → google
         if clean == brand and original != brand:
             return True
 
-        # 🚨 gooogle / faceb00k
         if brand in clean and clean != brand:
             return True
 
     return False
 
 
-# 🔥 Basic suspicious keywords
 def is_suspicious_domain(domain):
     keywords = ["login", "secure", "verify", "update", "bank"]
 
