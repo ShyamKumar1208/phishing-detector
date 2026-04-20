@@ -16,6 +16,7 @@ KNOWN_BRANDS = [
 ]
 
 
+# 🔥 Normalize characters (0 → o etc.)
 def normalize(text):
     replacements = {
         '0': 'o',
@@ -32,32 +33,42 @@ def normalize(text):
     return text
 
 
+# 🔥 Extract clean domain (handles @ attack)
 def extract_domain(url):
     if not url.startswith("http"):
         url = "https://" + url
 
     parsed = urlparse(url)
-    return parsed.netloc.replace("www.", "")
+    netloc = parsed.netloc
+
+    # remove credentials (user@)
+    if "@" in netloc:
+        netloc = netloc.split("@")[-1]
+
+    return netloc.replace("www.", "")
 
 
+# 🔥 Split domain name
 def split_domain(domain):
     parts = domain.split(".")
     return parts[-2] if len(parts) >= 2 else domain
 
 
-def is_trusted_domain(url):
-    domain = extract_domain(url)
+# 🔥 Credential attack detection
+def has_credentials(url):
+    return "@" in url
 
+
+# 🔥 Trusted domain check
+def is_trusted_domain(domain):
     for trusted in TRUSTED_DOMAINS:
         if domain == trusted or domain.endswith("." + trusted):
             return True
-
     return False
 
 
-# 🔥 NEW: BRAND ATTACK DETECTION
-def is_brand_attack(url):
-    domain = extract_domain(url)
+# 🔥 Brand impersonation detection
+def is_brand_attack(domain):
     name = split_domain(domain)
 
     original = name.lower()
@@ -67,26 +78,27 @@ def is_brand_attack(url):
 
         # Legit
         if original == brand:
-            return False
+            continue
 
         # 🚨 g00gle → google
         if clean == brand and original != brand:
             return True
 
-        # 🚨 similarity (gooogle)
+        # 🚨 gooogle / faceb00k
         if brand in clean and clean != brand:
             return True
 
     return False
 
 
-def is_suspicious_domain(url):
+# 🔥 Basic suspicious keywords
+def is_suspicious_domain(domain):
     keywords = ["login", "secure", "verify", "update", "bank"]
 
-    url = url.lower()
+    domain = domain.lower()
 
     for word in keywords:
-        if word in url:
+        if word in domain:
             return True
 
     return False
